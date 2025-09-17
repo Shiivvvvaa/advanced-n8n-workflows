@@ -1,0 +1,652 @@
+{
+  "name": "Personalized Outreach system",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "1k4hXz6OPX-x9XwhZA6JYHwMfo0jXjyNI69i_pGtTsg8",
+          "mode": "list",
+          "cachedResultName": "Travel agency prospects list",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1k4hXz6OPX-x9XwhZA6JYHwMfo0jXjyNI69i_pGtTsg8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1k4hXz6OPX-x9XwhZA6JYHwMfo0jXjyNI69i_pGtTsg8/edit#gid=0"
+        },
+        "event": "rowAdded",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "e172dc47-42f0-42fd-b053-c88fec2e3e9a",
+      "name": "Google Sheets Trigger",
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "C19cYUROPtqp4Hhp",
+          "name": "Google Sheets Trigger account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "187ae875-e163-4ea6-923c-f780c59f7858",
+              "leftValue": "={{ $json[\"message sent\"] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "11a82825-b2e7-4694-a22b-83c376eb8402",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "operation": "Run actor and get dataset",
+        "actorId": {
+          "__rl": true,
+          "value": "VhxlqQXRwhW8H5hNV",
+          "mode": "list",
+          "cachedResultName": "Linkedin Profile Details Scraper + EMAIL (No Cookies Required) (apimaestro/linkedin-profile-detail)",
+          "cachedResultUrl": "https://console.apify.com/actors/VhxlqQXRwhW8H5hNV/input"
+        },
+        "customBody": "={\n\"username\":\"{{$('Filter').item.json['Linkedin profile URL']}}\"\n}",
+        "timeout": {},
+        "build": "=latest",
+        "authentication": "apifyOAuth2Api"
+      },
+      "type": "@apify/n8n-nodes-apify.apify",
+      "typeVersion": 1,
+      "position": [
+        416,
+        0
+      ],
+      "id": "7bcc006f-f3b5-4176-bed4-7eb6165dfe8a",
+      "name": "Run an Actor and get dataset",
+      "credentials": {
+        "apifyOAuth2Api": {
+          "id": "PPfVGEYXRjWrjiaH",
+          "name": "Apify account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Name:{{ $json.basic_info.first_name }} , \nLinkedin headline: {{ $json.basic_info.headline }}, \nLinkedIn about:{{ $json.basic_info.about }}"
+            },
+            {
+              "content": "You're a professional email copywriter for Shanaya, a marketing agency owner.\n\nAs an input, you'll be provided with the prospect's Linkedin information we're supposed to send an email to. \n\nThe email body should be consisting of the Intro, Offer, CTA, and a natural P.S. message. \n\nkeep the email as short as 100 words, and your output should only consist of the email body ",
+              "role": "system"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        800,
+        -96
+      ],
+      "id": "e727d76e-0639-4fb9-91df-784cce001789",
+      "name": "Personalized email body",
+      "credentials": {
+        "openAiApi": {
+          "id": "F0TmuaSMAhWVpncC",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Name: {{ $json.basic_info.first_name }}, \nLinkedin headline: {{ $json.basic_info.headline }}, \nLinkedIn about:{{ $json.basic_info.about }}"
+            },
+            {
+              "content": "You're a professional email copywriter for Shanaya, a marketing agency owner.\n\nAs an input, you'll be provided with the prospect's Linkedin information we're supposed to send an email to. \n\nYour role is to just create an appropriate subject for the prospect, NO email body. \n\nThe subject should be short(5-6 words), personalized and should totally stand out.",
+              "role": "system"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        800,
+        112
+      ],
+      "id": "063837e5-d437-47eb-9758-941f529d93a3",
+      "name": "Personalized email Subject",
+      "credentials": {
+        "openAiApi": {
+          "id": "F0TmuaSMAhWVpncC",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1472,
+        0
+      ],
+      "id": "470dbb7f-c66e-43b0-97c2-ba52169c18d2",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Filter').item.json['EMAIL'] }}",
+        "subject": "={{ $json['Email subject'] }}",
+        "emailType": "text",
+        "message": "={{ $json['email body'] }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1920,
+        16
+      ],
+      "id": "79d80326-25c3-467d-ae5b-a07af53c814b",
+      "name": "Send a message",
+      "webhookId": "edd98e34-8136-4ee0-b674-224b8b8383e7",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "uXS45rYCOba6Y116",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "17e0bd45-1ae5-4e21-95f3-474bdc07f439",
+              "name": "=email body",
+              "value": "={{ $json.message.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1168,
+        -96
+      ],
+      "id": "14a5c240-37ca-4c47-8bc8-42dc2366b7e7",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ac7edd6c-57f1-4553-83c8-245409f630ae",
+              "name": "=Email subject",
+              "value": "={{ $json.message.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1168,
+        112
+      ],
+      "id": "6cb0eaa0-2a1e-4045-b6a4-84a9b431a2b9",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1k4hXz6OPX-x9XwhZA6JYHwMfo0jXjyNI69i_pGtTsg8",
+          "mode": "list",
+          "cachedResultName": "Travel agency prospects list",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1k4hXz6OPX-x9XwhZA6JYHwMfo0jXjyNI69i_pGtTsg8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1k4hXz6OPX-x9XwhZA6JYHwMfo0jXjyNI69i_pGtTsg8/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "message sent": "yes",
+            "EMAIL": "={{ $('Filter').item.json['EMAIL'] }}"
+          },
+          "matchingColumns": [
+            "EMAIL"
+          ],
+          "schema": [
+            {
+              "id": "NAME ",
+              "displayName": "NAME ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "CONTACT NUMBER",
+              "displayName": "CONTACT NUMBER",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "EMAIL",
+              "displayName": "EMAIL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Linkedin profile URL",
+              "displayName": "Linkedin profile URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "message sent",
+              "displayName": "message sent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2048,
+        -240
+      ],
+      "id": "79c05ad9-e252-45aa-8bbb-dca8ddfcab84",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "iNkZqAm8iPeImIiV",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1680,
+        0
+      ],
+      "id": "4830b040-a680-427c-b98a-707b19b0748a",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "amount": 8,
+        "unit": "minutes"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2192,
+        16
+      ],
+      "id": "d58824eb-bda9-49f9-9a6e-5c9fa2ba86ff",
+      "name": "Wait",
+      "webhookId": "ad43d236-057a-459c-918e-7bbc72444ec2"
+    },
+    {
+      "parameters": {
+        "content": "## Google Sheets Trigger \nreceives the google sheets data along with the prospect's LinkedIn URL."
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -336,
+        304
+      ],
+      "id": "ddcc5b15-e39e-4247-864f-460f337e38ee",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## 'FILTER' node \nfilters out all the rows with the fresh prospects from the ones who've already been sent an email to."
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        32,
+        304
+      ],
+      "id": "fd5438de-996f-4d02-aa81-cd6b51dfe7a9",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Apify node \nruns an Apify actor and scrapes the prospect's personalized information from their LinkedIN profile."
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        384,
+        320
+      ],
+      "id": "34b01df0-6f3a-4d3b-b1bf-cea97ea194e5",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## AI agent nodes \nprepare personalized emails for the prospect according to the information scraped from their LinkedIn profile. ",
+        "height": 128,
+        "width": 336
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        752,
+        320
+      ],
+      "id": "1df98bb8-5eea-4e7f-8d6f-6efa73a755e2",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## 'Merge' node \ncombines the email body with its respective email subject for an item(prospect).",
+        "height": 128,
+        "width": 272
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1296,
+        288
+      ],
+      "id": "f20952ad-1225-484f-a57f-5fa94ea223ad",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## 'Loop Over Items' + GMAIL 'send a message' + the 'wait' node workflow\nprocesses the emails one by one, such that one mail is sent every 8 minutes. \n\nThis enhances the email deliverability for the campaign, so that our emails do not come out as spam if we burst them all at once.",
+        "height": 176,
+        "width": 544
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1728,
+        272
+      ],
+      "id": "7cb71816-09b9-4917-afe1-21285cebb46e",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "## Google Sheets \"Update row in sheet\" node \nupdates the database with a confirmation for the prospects who we've just sent the emails too.",
+        "width": 304
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2288,
+        -400
+      ],
+      "id": "ac62f455-f88c-4dbd-b37a-09b5a792fd02",
+      "name": "Sticky Note6"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Sheets Trigger": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Run an Actor and get dataset",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run an Actor and get dataset": {
+      "main": [
+        [
+          {
+            "node": "Personalized email body",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Personalized email Subject",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Personalized email body": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Personalized email Subject": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update row in sheet": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "dd9a4629-1f75-4a8a-ae27-8638920d505c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b850b2ec6298353b213df5691b230f20698bc7d222e8f8e20aedeaef497246bf"
+  },
+  "id": "rFJRigDxp8jrWFp2",
+  "tags": []
+}
